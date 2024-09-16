@@ -16,6 +16,11 @@ int main(int argc, char *argv[])
     int ret;
     int data_socket;
     char buffer[BUFFER_SIZE];
+    // Check if server IP is provided
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <server_ip>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
     // Create data socket
     data_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (data_socket == -1)
@@ -29,7 +34,7 @@ int main(int argc, char *argv[])
 
     // Set up the server address structure
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // Loopback address for local machine
+    server_addr.sin_addr.s_addr = inet_addr(argv[1]); // Loopback address for local machine 127.0.0.1
     server_addr.sin_port = htons(PORT);
 
     ret = connect(data_socket, (const struct sockaddr *)&server_addr, sizeof(struct sockaddr_in));

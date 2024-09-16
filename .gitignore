@@ -1,9 +1,7 @@
 .vscode
 client
 server
-routing-client
-routing-client.o
-routing-server
-routing-server.o
-routing-table.o
+routing_client
+*.o
+routing_server
 mserver
