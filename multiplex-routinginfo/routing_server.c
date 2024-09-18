@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/select.h>
-#include "routing_table.h" // change to "routing_table.c" while debugging in VS code
+#include "routing_table.c" // change to "routing_table.c" while debugging in VS code
 
 #define BUFFER_SIZE 260
 #define MAX_CLIENT_SUPPORTED 32

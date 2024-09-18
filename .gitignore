@@ -1,7 +1,17 @@
-.vscode
-client
-server
-routing_client
+# Ignore all files without an extension (likely executables)
+*
+
+# Do not ignore C source files
+!*.c
+
+# Do not ignore header files
+!*.h
+
+# Do not ignore the .gitignore file itself
+!.gitignore
+
+# Do not ignore directories (allow folder traversal)
+!*/
+
+# Ignore object files created during compilation
 *.o
-routing_server
-mserver

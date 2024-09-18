@@ -1,5 +1,5 @@
 # Client Server program in C
-## OS: Unix or Linux
+## OS: Unix or Linux based system
 
 This is a sample project where I am trying to learn how to create Server and Client in Inter Process Communication on same machine 
 and Network Communication on two physical machines.
