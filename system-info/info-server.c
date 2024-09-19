@@ -1,5 +1,6 @@
 /**
  * 📔info-server V1.0📔
+ * @author: Reeshabh Choudhary
  * 
  * ℹ️ This program creates an asynhronous server using 'epoll()' system call
  *    and sends system information to connected clients every 5 seconds.
@@ -35,12 +36,10 @@
 #include <sys/sysinfo.h>
 #include <sys/utsname.h>
 
-#define MAX_CLIENTS 10
-#define PORT 8080
-#define MESSAGE_INTERVAL 5 // Seconds
-#define BUFFER_SIZE 1024
-#define PROC_PATH "/proc"
-#define MAX_PROCESSES 1024
+#define MAX_CLIENTS 10 /// < Maximum number of clients allowed
+#define PORT 8080 ///< port 8080 will be sued to run the server
+#define MESSAGE_INTERVAL 5 /// < 5 Seconds is the message interval
+#define BUFFER_SIZE 1024 ///< Buffer limit for data to be sent
 
 
 /**
@@ -56,17 +55,17 @@ typedef struct
     int data_ready;
 } ClientInfo;
 
-// Array of clients with ClientInfo structure, allowing a maximum of MAX_CLIENTS = 10 clients.
+/// @brief Array of clients with ClientInfo structure, allowing a maximum of MAX_CLIENTS = 10 clients.
 ClientInfo clients[MAX_CLIENTS];
 
 /**
  * @brief Function to initialize the clients array
  * @details [LOGIC][CLIENT_INITIALIZATION]
- * Iterate over the content of clients array and for each element do the following:
- * 1. set socket_fd = -1, which will ensure the client item has no File Descriptor attached, 
- *      means available for connection.
- * 2. set data_ready = 0, which is a flag to represent, data has not ye been update for the client.
- * NOTE: When logging system information (every 5 minutes in this case), 
+ * 1. Iterate over the content of clients array and for each element do the following:
+ *     a. set socket_fd = -1, which will ensure the client item has no File Descriptor attached, 
+ *          means available for connection.
+ *     b. set data_ready = 0, which is a flag to represent, data has not ye been update for the client.
+ * @paragraph: When logging system information (every 5 minutes in this case), 
  * the server needs to send the same information to all connected clients.
  * However, not all clients may be ready to receive data at the exact same moment.
  */
@@ -74,7 +73,7 @@ void init_clients()
 {
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
-        /// @ref {CLIENT_INITIALIZATION}
+        // @ref {CLIENT_INITIALIZATION}
         clients[i].socket_fd = -1;
         clients[i].data_ready = 0;
     }
@@ -99,7 +98,7 @@ int add_client(int new_socket_fd)
             return i;
         }
     }
-    /// @ref {LOGIC}{CLIENT_ADDITION}{3}
+    // @ref {LOGIC}{CLIENT_ADDITION}{3}
     return -1;
 }
 
@@ -170,11 +169,11 @@ void get_top_cpu_processes(char *log_data, size_t buffer_size) {
     // Skip the header line from ps output
     fgets(process_info, sizeof(process_info), fp);
 
-    /// @ref {LOGIC}{CPU_PROCESS}{2}
+    // @ref {LOGIC}{CPU_PROCESS}{2}
     while (fgets(process_info, sizeof(process_info), fp) != NULL) {
         strncat(log_data, process_info, buffer_size - strlen(log_data) - 1);
     }
-    /// @ref {LOGIC}{CPU_PROCESS}{3}
+    // @ref {LOGIC}{CPU_PROCESS}{3}
     pclose(fp);
 }
 
@@ -196,7 +195,7 @@ char log_system_info(struct utsname *uts_info, struct sysinfo *sys_info)
     char log_data[BUFFER_SIZE];
     // Clear the log_data buffer
     memset(log_data, 0, BUFFER_SIZE);
-    /// @ref {LOGIC}{LOG_PREPARE_DATA}{1,2}
+    // @ref {LOGIC}{LOG_PREPARE_DATA}{1,2}
     snprintf(log_data, BUFFER_SIZE, "System Name: %s\n", uts_info->sysname);
     strncat(log_data, "Node Name: ", BUFFER_SIZE - strlen(log_data) - 1);
     strncat(log_data, uts_info->nodename, BUFFER_SIZE - strlen(log_data) - 1);
@@ -215,10 +214,10 @@ char log_system_info(struct utsname *uts_info, struct sysinfo *sys_info)
     char freeram_str[64];
     snprintf(freeram_str, sizeof(freeram_str), "Free RAM: %lu MB\n", sys_info->freeram / (1024 * 1024));
     strncat(log_data, freeram_str, BUFFER_SIZE - strlen(log_data) - 1);
-    /// @ref {LOGIC}{LOG_PREPARE_DATA}{3}
+    // @ref {LOGIC}{LOG_PREPARE_DATA}{3}
     get_top_cpu_processes(log_data, BUFFER_SIZE);
 
-    /// @ref {LOGIC}{LOG_PREPARE_DATA}{4}
+    // @ref {LOGIC}{LOG_PREPARE_DATA}{4}
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
         if (clients[i].socket_fd != -1)
@@ -244,11 +243,11 @@ void send_data_to_client(ClientInfo *client)
     /// @ref {LOGIC}{SEND_DATA}{1}
     if (client->data_ready)
     {
-        /// @ref {LOGIC}{SEND_DATA}{2}
+        // @ref {LOGIC}{SEND_DATA}{2}
         int sent_bytes = send(client->socket_fd, client->outgoing_data, strlen(client->outgoing_data), 0);
         if (sent_bytes > 0)
         {
-            /// @ref {LOGIC}{SEND_DATA}{3}
+            // @ref {LOGIC}{SEND_DATA}{3}
             client->data_ready = 0; // Reset once the data is sent
         }
         else if (sent_bytes == -1 && errno != EAGAIN)
