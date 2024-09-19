@@ -1,5 +1,6 @@
 /**
  * 📔info-server V1.0📔
+ * @file: info-server.c
  * @author: Reeshabh Choudhary
  * 
  * ℹ️ This program creates an asynhronous server using 'epoll()' system call
@@ -36,10 +37,10 @@
 #include <sys/sysinfo.h>
 #include <sys/utsname.h>
 
-#define MAX_CLIENTS 10 /// < Maximum number of clients allowed
-#define PORT 8080 ///< port 8080 will be sued to run the server
-#define MESSAGE_INTERVAL 5 /// < 5 Seconds is the message interval
-#define BUFFER_SIZE 1024 ///< Buffer limit for data to be sent
+#define MAX_CLIENTS 10 ///< Maximum number of clients allowed.
+#define PORT 8080 ///< port 8080 will be sued to run the server.
+#define MESSAGE_INTERVAL 5 ///< 5 Seconds is the message interval.
+#define BUFFER_SIZE 1024 ///< Buffer limit for data to be sent.
 
 
 /**
