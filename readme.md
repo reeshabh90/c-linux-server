@@ -2,8 +2,8 @@
 ## OS: Unix or Linux based system
 ## Connection: TCP
 
-This is a sample project where I am trying to learn how to create Server and Client in Inter Process Communication on same machine 
-and Network Communication on two physical machines.
+## Description
+A sample project on C language which implements Server - Client connection in TCP.
 
 ## Project Details
 This repository has multiple projects inside it. 
@@ -12,7 +12,7 @@ This repository has multiple projects inside it.
 3. multiplex-routinginfo : This project has sample code for 1 server and 2 types of client: routing_update_client & routing_client.
     * routing_update_client can add routing entries to routing server and see the current list maintained by server.
     * routing_client can just see the list of routing entries in the server. List gets updated whenever new entry is added.
-4. system-info: This project has sample code for an asynchronous server which makes use of 'epoll' to asynchronously connect with clients and shares system information every 5 second. We get a basic idea about how event loop functions.
+4. system-info: This project has sample code for an asynchronous server which makes use of '*epoll*' to asynchronously connect with clients and shares system information every 5 second. We get a basic idea about how event loop functions.
 
 ## How to run the project
 Suppose you are in sample project multiplex-routinginfo. Please run following commands:
