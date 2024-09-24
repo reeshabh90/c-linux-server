@@ -263,6 +263,13 @@ void send_data_to_client(ClientInfo *client)
  * @param epoll_fd: A pointer to file descriptor corresponding to epoll
  * @param server_fd: Server socket File Descriptor
  * @param ev: A pointer to struct epoll_event 
+ * @details [LOGIC][EPOLL_INSTANCE]
+ * 1. Create an epoll instance using epoll_create1()
+ * 2. The server file descriptor 'server_fd' is added
+ *      to epoll instance using 'epoll_ctl()' system call.
+ * 3. ev, the 'epoll_event' data structure is used to signify the event types we are interested.
+ * 4. once a file descriptor is added 'epoll_wait() will notify our program when new events
+ *      (like connection requests) occur on the listening socket.
  */
 void create_epoll(int *epoll_fd, int server_fd, struct epoll_event *ev)
 {
@@ -291,7 +298,7 @@ void create_epoll(int *epoll_fd, int server_fd, struct epoll_event *ev)
  * @details [LOGIC][HANDLE_CONNECTION] 
  * 1. Use accept() system call to accept client connection
  * 2. Make the socket corresponding to new connection as non-blocking
- * 3. Add the client socket to epoll instance
+ * 3. Add the client socket to epoll instance' to get notified about events
  * 4. Add the client in the clients array
  */
 void handle_new_connection(int epoll_fd, int server_fd, struct epoll_event *ev)
