@@ -16,11 +16,13 @@ This repository has multiple projects inside it.
 
 ## How to run the project
 Suppose you are in sample project multiplex-routinginfo. Please run following commands:
+```
 <gcc -c routing_server.c -o routing_server.o>
 <gcc -c routing_table.c -o routing_table.o>
 <gcc routing_server.c routing_table.o -o routing_server>
 <gcc -g routing_client.c -o routing_client>
 <gcc -g routing_update_client.c -o routing_update_client>
+```
 
 ## Concept
 ### Transmission Control Protocol(TCP):
