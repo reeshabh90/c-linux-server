@@ -13,6 +13,7 @@ This repository has multiple projects inside it.
     * routing_update_client can add routing entries to routing server and see the current list maintained by server.
     * routing_client can just see the list of routing entries in the server. List gets updated whenever new entry is added.
 4. system-info: This project has sample code for an asynchronous server which makes use of '*epoll*' to asynchronously connect with clients and shares system information every 5 second. We get a basic idea about how event loop functions.
+5. http-setup: This project creates an asynchronous HTTP Server and Client which communicate via HTTP protocol using GET, POST, etc. methods.
 
 ## How to run the project
 Suppose you are in sample project multiplex-routinginfo. Please run following commands:
