@@ -195,9 +195,7 @@ void handle_new_connection(int epoll_fd, int server_fd, struct epoll_event *ev)
             perror("epoll_ctl: client_fd");
             close(client_fd);
             continue;
-        }
-
-        int client_idx = add_client(client_fd);
+        }        
         printf("Accepted new connection: FD %d\n", client_fd);
     }
 }
