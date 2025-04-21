@@ -13,10 +13,11 @@
 #define DATA_PORT 2021
 #define USERNAME "ftpClient"
 #define PASSWORD "ftpCLPass"
-#define CLIENT_HOME_DIR "/home/ftpuser" // User's home directory
+#define CLIENT_HOME_DIR "/home/reeshabh/ftpuser" // User's home directory
 
 void *handle_client(void *arg);
 void list_directory(const char *dir_path, int data_socket);
+void parse_port_command(const char *port_command, char *client_ip, int *client_port);
 
 int main(int argc, char const *argv[])
 {
@@ -128,18 +129,12 @@ void *handle_client(void *arg)
 
     if (strncmp(buffer, "PORT", 4) == 0)
     {
-        int p1, p2;
-        char ip[16];
-        // sample: "PORT 127,0,0,1,192,168\n"
-        // The first 5 characters "PORT " are skipped
-        // "%[^,]": This will read "127.0.0.1" (up to the first comma) into the ip variable.
-        // "%d": This will read 192 into the p1 variable.
-        // "%d": This will read 168 into the p2 variable.
-        sscanf(buffer + 5, "%[^,],%d,%d", ip, &p1, &p2);
-        // Rebuilding the Data Port, This would be the port on which the server will try to connect to the client for data transfer.
-        int client_data_port = p1 * 256 + p2;
+        char client_ip[16];  // To store the parsed IP address
+        int client_data_port;   
+        parse_port_command(buffer, client_ip, &client_data_port);
 
-        printf("Client data IP: %s, Port: %d\n", ip, client_data_port);
+
+        printf("Client data IP: %s, Port: %d\n", client_ip, client_data_port);
 
         // Connect to the client data port
         ftp_data_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -152,7 +147,7 @@ void *handle_client(void *arg)
 
         memset(&client_data_addr, 0, sizeof(client_data_addr));
         client_data_addr.sin_family = AF_INET;
-        client_data_addr.sin_addr.s_addr = inet_addr(ip);
+        client_data_addr.sin_addr.s_addr = inet_addr(client_ip);
         client_data_addr.sin_port = htons(client_data_port);
 
         if (connect(ftp_data_socket, (struct sockaddr *)&client_data_addr, sizeof(client_data_addr)) < 0)
@@ -216,4 +211,26 @@ void list_directory(const char *dir_path, int data_socket)
     }
 
     closedir(dir);
+}
+
+void parse_port_command(const char *port_command, char *client_ip, int *client_port)
+{
+    int a, b, c, d, e, f;
+
+    // Parse the PORT command (Format: PORT a,b,c,d,e,f)
+    if (sscanf(port_command, "PORT %d,%d,%d,%d,%d,%d", &a, &b, &c, &d, &e, &f) == 6)
+    {
+        // Construct the IP address
+        snprintf(client_ip, 16, "%d.%d.%d.%d", a, b, c, d);
+
+        // Calculate the port
+        *client_port = (e * 256) + f;
+
+        printf("Client data IP: %s, Port: %d\n", client_ip, *client_port);
+    }
+    else
+    {
+        fprintf(stderr, "Invalid PORT command: %s\n", port_command);
+        exit(EXIT_FAILURE);
+    }
 }

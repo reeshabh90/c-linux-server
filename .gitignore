@@ -15,3 +15,6 @@
 
 # Ignore object files created during compilation
 *.o
+
+# Do not ignore readme files
+!*.md
