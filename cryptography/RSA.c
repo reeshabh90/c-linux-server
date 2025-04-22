@@ -27,9 +27,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 // Defining an alias for long long data type using 'typedef'
 typedef long long ll;
+
+/// @brief This function checks whether a given number is prime or not
+/// @param n input number
+/// @return
+int is_prime(ll n)
+{
+    if (n <= 1)
+        return 0;
+    if (n <= 3)
+        return 1;
+    if (n % 2 == 0 || n % 3 == 0)
+        return 0;
+
+    for (ll i = 5; i * i <= n; i += 6)
+        if (n % i == 0 || n % (i + 2) == 0)
+            return 0;
+    return 1;
+}
+
+/// @brief This function generates a random prime in the given range
+/// @param lower range
+/// @param upper range
+/// @return
+ll generate_random_prime(ll lower, ll upper)
+{
+    ll num;
+    do
+    {
+        num = (rand() % (upper - lower + 1)) + lower;
+    } while (!is_prime(num));
+    return num;
+}
 
 /// @brief This function applies Euler's Totient on an input n.
 /// @details Euler’s Totient function Φ(n) for an input n is the count of numbers in {1, 2, 3, …, n-1}
@@ -61,35 +94,35 @@ ll calculate_gcd(ll a, ll b)
 
 /// @details This function calculates modular multiplicative inverse using the Extended Euclidean Algorithm,
 /// which not only computes the GCD but also finds integers x and y such that: a * x + b * y = gcd(a, b).
-/// If gcd(e, φ(n)) = 1, then this gives you -> d = x mod φ(n). 
+/// If gcd(e, φ(n)) = 1, then this gives you -> d = x mod φ(n).
 /// In simpler terms: `d` is the number you multiply with e to get a remainder of 1 when divided by φ(n).
 /// The number `d` becomes the private key.
-/// @brief Given two integers A and M, the modular multiplicative inverse is an integer X such that: A * X ≡ 1 (mod M)
+/// @brief This function returns the private key 'd' such that `d × e ≡ 1 (mod φ)`, using the Extended Euclidean Algorithm.
 /// @param e
 /// @param phi
 /// @return
 ll calculate_mod_inverse(ll e, ll phi)
 {
-    ll t = 0, new_t = 1;
-    ll r = phi, new_r = e;
+    ll coeff_phi = 0, coeff_e = 1;
+    ll current_remainder = phi, next_remainder = e;
 
-    while (new_r != 0)
+    while (next_remainder != 0)
     {
-        ll quotient = r / new_r;
-        ll temp = new_t;
-        new_t = t - quotient * new_t;
-        t = temp;
+        ll quotient = current_remainder / next_remainder;
+        ll temp = coeff_e;
+        coeff_e = coeff_phi - quotient * coeff_e;
+        coeff_phi = temp;
 
-        temp = new_r;
-        new_r = r - quotient * new_r;
-        r = temp;
+        temp = next_remainder;
+        next_remainder = current_remainder - quotient * next_remainder;
+        current_remainder = temp;
     }
 
-    if (r > 1)
+    if (current_remainder > 1)
         return -1; // Not invertible
-    if (t < 0)
-        t += phi;
-    return t;
+    if (coeff_phi < 0)
+        coeff_phi += phi;
+    return coeff_phi;
 }
 
 /// @brief This function calculates Modular exponentiation: (base ^ exponent) % modulus
@@ -119,9 +152,18 @@ ll calculate_mod_pow(ll base, ll exp, ll mod)
 int main(int argc, char const *argv[])
 {
     /* code */
-    ll p, q;
-    printf("Enter two large prime numbers (e.g., 61 and 53):\n");
-    scanf("%lld %lld", &p, &q);
+    srand(time(NULL)); // Seed RNG
+
+    // Randomly generate two different primes
+    ll p = generate_random_prime(100, 500);
+    ll q;
+    do
+    {
+        q = generate_random_prime(100, 500);
+    } while (q == p);
+
+    printf("Random Prime p = %lld\n", p);
+    printf("Random Prime q = %lld\n", q);
 
     ll n = p * q;
     ll phi = calculate_euler_totient(p) * calculate_euler_totient(q);
@@ -129,14 +171,14 @@ int main(int argc, char const *argv[])
 
     if (calculate_gcd(e, phi) != 1)
     {
-        printf("65537 is not coprime with `phi`. Choose different p and q.\n");
+        printf("65537 is not coprime with `phi φ(n)`. Retry\n");
         return 1;
     }
 
     ll d = calculate_mod_inverse(e, phi);
     if (d == -1)
     {
-        printf("Failed to compute modular inverse. Try other primes.\n");
+        printf("Failed to compute modular inverse. Try again.\n");
         return 1;
     }
 
