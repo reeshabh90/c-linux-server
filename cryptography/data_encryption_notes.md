@@ -76,17 +76,32 @@
 - Widely used across the world for government, financial, and secure communications.
 
 ### Decryption:
-- Same round keys are used **in reverse order**
-- Each step is the inverse of the corresponding encryption step:
-  1. Inverse Shift Rows
-  2. Inverse SubBytes
-  3. Inverse MixColumns
-  4. Add Round Key
+- 🔐 Inputs
+  - Ciphertext (C)
+  - Expanded round keys (K0 to K10) — same as encryption
+  - AES standard decryption logic (Inv operations)
+  - Same round keys are used **in reverse order**
+    - Each step is the inverse of the corresponding encryption step:
+      1. **Initial Round** : `AddRoundKey(C, K10)`
+      2. **Rounds 1 to 9** (in reverse order)
+          For each round key `Ki` from `K9` to `K1`:
+          - `InvShiftRows()`
+          - `InvSubBytes()`
+          - `AddRoundKey(Ki)`
+          - `InvMixColumns()`
+      3. **Final Round**
+        - `InvShiftRows()`
+        - `InvSubBytes()`
+        - `AddRoundKey(K0)`
+
+
 
 ---
 
 ## Notes:
-
+- `AddRoundKey()` is symmetric (XOR operation) — same in encryption and decryption.
+- Inverse functions (`InvSubBytes`, `InvShiftRows`, `InvMixColumns`) are mathematically defined to undo their corresponding encryption steps.
 - Receiver only needs the original symmetric key to decrypt, as round keys can be regenerated using the same key schedule.
+- The key schedule is not reversed — round keys are generated once, then applied in reverse order during decryption.
 - AES does **not** use the original key directly in each round.
 - All AES processing is done at the **byte level** within the **state matrix**.
