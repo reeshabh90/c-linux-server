@@ -71,10 +71,18 @@
 5. Receiver Uses AES Key to Decrypt the Data
 
 ### Key Schedule Process:
-1. Byte Substitution (S-box)
-2. Word Rotation
-3. XOR with Round Constant (Rcon)
-4. Combine with previous word (key expansion)
+> The Original key is used to generate a series of round keys. These round keys are used during each of the rounds of AES encryption. For AES-128, the key schedule expands the 128-bit initial key into 11 round keys (1 for the initial round + 10 for each of the 10 rounds). Each round key is 128 bits (or 4 words of 32 bits each), so we end up with 44 words in total. The round keys are used as sub-keys in the encryption process for each round of AES encryption.
+
+- **Intial round**:
+  - Input: 128-bit key is divided into 4 words of 32 bits each. 
+  - Word: A 32-bit (4-byte) chunk of the 128-bit key (16 bytes or 4 words).
+  - Output: Initial Key (128 bits): W0 | W1 | W2 | W3
+
+- **Round Key Generation steps**:
+  1. Byte Substitution (S-box)
+  2. Word Rotation
+  3. XOR with Round Constant (Rcon)
+  4. Combine with previous word (key expansion)
 
 ### 🔐 What Makes AES Secure:
 - **Large key sizes (128/192/256 bits)** make brute-force attacks infeasible.
