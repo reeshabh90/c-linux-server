@@ -61,7 +61,14 @@
 > Each round key is derived from the original key using the **Key Schedule Algorithm**
 > Original key is agreed upon in advance by both sender and receiver.
 > Original Key is shared secretly (eg. using RSA or secure storage).
-> Original Key is generated randomly using a secure random number generator.
+> Original Key can be pre-shared, generated from a password using a Key Derivation Function (like PBKDF2, scrypt), or cryptographically secure random number generator and securely exchanged (e.g., via RSA). 
+
+### Key Generation + Secure Sharing 
+1. 128-bit key is generated from cryptographically secure random number generator.
+2. Encrypt AES Key using Receiver’s RSA Public Key
+3. Send Encrypted AES Key + Encrypted Data
+4. Receiver Decrypts AES Key with RSA Private Key
+5. Receiver Uses AES Key to Decrypt the Data
 
 ### Key Schedule Process:
 1. Byte Substitution (S-box)
