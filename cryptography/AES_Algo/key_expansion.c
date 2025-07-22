@@ -16,10 +16,10 @@
  *   a. Rotates the word left by one byte (RotWord).
  *   b. Applies S-box substitution (SubWord).
  *   c. XORs with a round constant (Rcon).
- * 
- * 
+ *
+ *
  * 🔧 gcc -g key_expansion.c -o key_exp
- * 
+ *
  */
 
 #include <stdio.h>
@@ -27,7 +27,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include "key_expansion.h"
-
 
 // AES S-box s a 256-element lookup table used to substitute bytes during key expansion and encryption.
 static const byte sbox[256] = {
@@ -47,8 +46,7 @@ static const byte sbox[256] = {
     0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
     0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
     0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
-    0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
-};
+    0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16};
 
 // Rcon[i] = (x^(i-1), 0, 0, 0)
 // Rcon values are used in key expansion to introduce non-repetition and prevent symmetry in round keys.
@@ -56,8 +54,7 @@ const word rcon[11] = {
     0x00000000,
     0x01000000, 0x02000000, 0x04000000, 0x08000000,
     0x10000000, 0x20000000, 0x40000000, 0x80000000,
-    0x1b000000, 0x36000000
-};
+    0x1b000000, 0x36000000};
 
 /// @brief This function converts a single hexadecimal character (0–9, A–F, a–f) into integer value (0–15)
 /// @param c
@@ -89,12 +86,12 @@ byte hex_byte(const char *hex)
 }
 
 /// @brief This function performs a circular rotation on a 32 bit word
-/// @details 
+/// @details
 /// We first shift the values in 32 bit word to 8 bit positions left, which results in last 9 positions to be 00000000.
 /// We then shift the values in original 32 bit word to 24 positions right, which rsults in 1st 24 positions to be 000...0
 /// At last we combine both the results using OR operation and return the result.
-/// @param w 
-/// @return 
+/// @param w
+/// @return
 word RotWord(word w)
 {
     // word is 32 bits
@@ -105,16 +102,17 @@ word RotWord(word w)
 }
 /// @brief This function applies S-box substitution to each byte in word
 /// @details
-/// Each byte is substituted with: 
+/// Each byte is substituted with:
 /// 1. Its multiplicative inverse in GF(2⁸).
 /// 2. An affine transformation applied on the 8-bit representation.
 /// This process adds non-linearity to prevent linear attacks.
-/// @param w 
-/// @return 
-word SubWord(word w) {
+/// @param w
+/// @return
+word SubWord(word w)
+{
     return (sbox[(w >> 24) & 0xFF] << 24) |
            (sbox[(w >> 16) & 0xFF] << 16) |
-           (sbox[(w >> 8)  & 0xFF] << 8)  |
+           (sbox[(w >> 8) & 0xFF] << 8) |
            (sbox[w & 0xFF]);
 }
 
@@ -152,8 +150,8 @@ void KeyExpansion(word words[4], byte key_bytes[16])
     // Expanding rest of the 40 keys
     for (int i = AES_NK; i < AES_KEY_EXP_SIZE; i++)
     {
-        word temp = words[i-1];
-        if(i % AES_NK == 0) 
+        word temp = words[i - 1];
+        if (i % AES_NK == 0)
         {
             temp = SubWord(RotWord(temp)) ^ rcon[i / AES_NK];
         }
@@ -161,7 +159,8 @@ void KeyExpansion(word words[4], byte key_bytes[16])
     }
 
     printf("Next Round Keys:\n");
-    for (int i = AES_NK; i < AES_KEY_EXP_SIZE; i++) {
+    for (int i = AES_NK; i < AES_KEY_EXP_SIZE; i++)
+    {
         printf("W[%2d]: %08X\n", i, words[i]);
     }
 }

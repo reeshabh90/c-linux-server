@@ -25,33 +25,80 @@
 
 #define BLOCK_SIZE 16
 
-/// @brief This function creates a padding over the input
-/// @param input 
-/// @return 
-unsigned char *padding_function(const unsigned char *input)
+// Function to apply PKCS#7 padding
+void apply_pkcs7_padding(unsigned char *block, int data_len)
 {
-    int input_length = strlen(input);
-    int padding_amount = BLOCK_SIZE - (input_length % BLOCK_SIZE);
-    printf("Padding needed: %d\n", padding_amount);
-    int padded_input_length = input_length + padding_amount;
-
-    // create heap memory for padding
-    unsigned char *padded_memory = (unsigned char *)malloc(padded_input_length);
-    if (!padded_memory)
+    int padding_len = BLOCK_SIZE - data_len;
+    for (int i = data_len; i < BLOCK_SIZE; i++)
     {
-        fprintf(stderr, "Memory allocation failed.\n");
-        exit(1);
+        // We added padding length as padding so that while decryption program knows exactly how many bytes were padded
+        block[i] = (unsigned char)padding_len;
+    }
+}
+
+/// @brief This function creates a padding over the input
+/// @details The function performs following steps:
+/// 1. Removes trailing new line
+/// 2. Calculate number of blocks text need to be divided into, as AES works on 16 bytes (128 bits) block only.
+/// 3. Last block is padded using pcks7 so that during decryption program knows when data has ended.
+/// @param input string array
+/// @return
+void padding_function(char *input_array)
+{
+    size_t input_len = strlen(input_array);
+
+    // Remove trailing newline from fgets
+    if (input_array[input_len - 1] == '\n')
+    {
+        input_array[--input_len] = '\0';
     }
 
-    memcpy(padded_memory, input, input_length);
-    // Add padding bytes to the padded memory
-    for (int i = 0; i < padding_amount; i++)
+    // Calculate number of 16-byte blocks needed
+    int num_blocks = input_len / BLOCK_SIZE;
+    if (input_len % BLOCK_SIZE != 0)
     {
-        // We add padding amount as Byte value so that during decryptionthe algorithm knows
-        // exactly how many padding bytes to strip, by reading the last byte’s value.
-        padded_memory[input_length + i] = padding_amount;
+        num_blocks += 1;
     }
-    return padded_memory;
+
+    printf("\nTotal blocks (with padding): %d\n", num_blocks);
+
+    unsigned char *padded_data = (unsigned char *)calloc(num_blocks * BLOCK_SIZE, sizeof(unsigned char));
+    memcpy(padded_data, input_array, input_len);
+
+    // Apply PKCS#7 padding to the last block
+    int last_block_len = input_len % BLOCK_SIZE;
+    if (last_block_len == 0)
+    {
+        // Full block, add new block with padding
+        // When decrypting, the program must know where the real data ends and padding begins.
+        // If a 16-byte block is the exact length of the data,  to avoid ambiguity,
+        // we add a full block of padding (e.g., 0x10 0x10 ... 0x10 for PKCS#7).
+        for (int i = 0; i < BLOCK_SIZE; i++)
+        {
+            padded_data[input_len + i] = BLOCK_SIZE;
+        }
+        num_blocks += 1;
+    }
+    else
+    {
+        // `padded_data` points to the start of the full padded buffer
+        // first argument points to the last 16-byte block (hence, num_blocks -1).
+        apply_pkcs7_padding(padded_data + (num_blocks - 1) * BLOCK_SIZE, last_block_len);
+    }
+
+    // Display the blocks
+    printf("\nPadded 16-byte blocks (in hex):\n");
+    for (int i = 0; i < num_blocks; i++)
+    {
+        printf("Block %d: ", i + 1);
+        for (int j = 0; j < BLOCK_SIZE; j++)
+        {
+            printf("%02X ", padded_data[i * BLOCK_SIZE + j]);
+        }
+        printf("\n");
+    }
+
+    free(padded_data);
 }
 
 /// @brief Main function of the program which processes a string input and divides in 16 blocks
@@ -63,24 +110,9 @@ unsigned char *padding_function(const unsigned char *input)
 /// @return
 int main(int argc, char const *argv[])
 {
-    /* code */
-    const unsigned char *input = (unsigned char *)"Test String";
-    printf("Input data: %s\n", input);
-    // Note: earlier created heap memory 'padded_memory' in padding_function is just being renamed to 'padded_input'.
-    unsigned char *padded_input = padding_function(input);
-    printf("Padded data: %s\n", padded_input);
-
-    // Print padded input as 16-byte blocks in hex
-
-    for (size_t i = 0; i < strlen(padded_input); i++)
-    {
-        // printing in hexadecimal format
-        printf("%02x ", padded_input[i]);
-        if ((i + 1) % BLOCK_SIZE == 0)
-            printf("\n");
-    }
-    
-    // Heap memory clean up
-    free(padded_input);
+    char input_array[1024];
+    printf("Enter plaintext: ");
+    fgets(input_array, sizeof(input_array), stdin);
+    padding_function(input_array);
     return 0;
 }
