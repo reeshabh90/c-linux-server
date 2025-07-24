@@ -167,24 +167,8 @@ void apply_pkcs7_padding(unsigned char *block, int data_len)
 /// 3. Last block is padded using pcks7 so that during decryption program knows when data has ended.
 /// @param input string array
 /// @return
-unsigned char *padding_function(char *input_array)
+unsigned char *padding_function(char *input_array, int num_blocks, size_t input_len)
 {
-    size_t input_len = strlen(input_array);
-
-    // Remove trailing newline from fgets
-    if (input_array[input_len - 1] == '\n')
-    {
-        input_array[--input_len] = '\0';
-    }
-
-    // Calculate number of 16-byte blocks needed
-    int num_blocks = input_len / BLOCK_SIZE;
-    if (input_len % BLOCK_SIZE != 0)
-    {
-        num_blocks += 1;
-    }
-
-    printf("\nTotal blocks (with padding): %d\n", num_blocks);
 
     unsigned char *padded_data = (unsigned char *)calloc(num_blocks * BLOCK_SIZE, sizeof(unsigned char));
     memcpy(padded_data, input_array, input_len);
@@ -230,7 +214,7 @@ unsigned char *padding_function(char *input_array)
  * @param block Pointer to the block of data to be encrypted (16 bytes).
  * @param words Pointer to the expanded key words (40 words for AES-128).
  */
-void aes_encrypt(unsigned char *block, word *words)
+byte *aes_encrypt(unsigned char *block, word *words, byte *ciphertext)
 {
     printf("AES encryption function called with block and words.\n");
     byte state_matrix[4][4]; // AES state matrix (4x4)
@@ -247,20 +231,22 @@ void aes_encrypt(unsigned char *block, word *words)
     // Round 0 (Initial Step) — AddRoundKey
     add_state_round(words, state_matrix, round);
 
-    // Round (1-10)
-    for (round = 1; round < 10; round++)
+    // Round (1-9)
+    for (round = 1; round <= 10; round++)
     {
         // SubBytes
         sub_bytes(state_matrix);
         // ShiftRows
         shift_rows(state_matrix);
-        // MixColumns
-        mix_columns(state_matrix);
+        if (round < 10)
+        {
+            // MixColumns
+            mix_columns(state_matrix);
+        }
         // AddRoundKey
         add_state_round(words, state_matrix, round);
     }
 
-    byte ciphertext[16];
     for (int col = 0; col < 4; ++col)
     {
         for (int row = 0; row < 4; ++row)
@@ -268,13 +254,7 @@ void aes_encrypt(unsigned char *block, word *words)
             ciphertext[col * 4 + row] = state_matrix[row][col];
         }
     }
-
-    printf("Encrypted ciphertext:\n");
-    for (int i = 0; i < BLOCK_SIZE; ++i)
-    {
-        printf("%02X", ciphertext[i]);
-    }
-    printf("\n");
+    return ciphertext;
 }
 
 /**
@@ -401,9 +381,15 @@ void add_state_round(word *words, byte state_matrix[4][4], int round)
  * @param words Pointer to the expanded key words (40 words for AES-128).
  * @param padded_data Pointer to the padded data to be encrypted.
  */
-void encryption_main(word *words, unsigned char *padded_data)
+void encryption_main(word *words, unsigned char *padded_data, int num_blocks)
 {
-    int num_blocks = strlen((char *)padded_data) / BLOCK_SIZE;
+    printf("DEBUG: num_blocks = %d\n", num_blocks);
+    if (num_blocks <= 0 || num_blocks > 1000)
+    { // sanity check
+        printf("Invalid num_blocks: %d\n", num_blocks);
+        exit(1);
+    }
+    byte final_ciphertext[BLOCK_SIZE * num_blocks];
     for (int i = 0; i < num_blocks; i++)
     {
         unsigned char *block = padded_data + i * BLOCK_SIZE;
@@ -414,10 +400,19 @@ void encryption_main(word *words, unsigned char *padded_data)
             printf("%02X ", block[j]);
         }
         printf("\n");
-
+        byte ciphertext[BLOCK_SIZE];
         // Call the AES encryption function (not implemented here)
-        aes_encrypt(block, words);
+        aes_encrypt(block, words, ciphertext);
+
+        memcpy(final_ciphertext + i * BLOCK_SIZE, ciphertext, BLOCK_SIZE);
+        }
+
+    printf("Encrypted ciphertext:\n");
+    for (int i = 0; i < (BLOCK_SIZE * num_blocks); i++)
+    {
+        printf("%02X", final_ciphertext[i]);
     }
+    printf("\n");
 }
 
 /**
@@ -427,7 +422,8 @@ void encryption_main(word *words, unsigned char *padded_data)
 void flush_input()
 {
     int c;
-    while ((c = getchar()) != '\n' && c != EOF);
+    while ((c = getchar()) != '\n' && c != EOF)
+        ;
 }
 
 int main(int argc, char const *argv[])
@@ -477,10 +473,28 @@ int main(int argc, char const *argv[])
     char input_array[1024];
     printf("Enter plaintext: ");
     fgets(input_array, sizeof(input_array), stdin);
-    unsigned char *padded_data = padding_function(input_array);
+
+    // Calculate Input Length
+    size_t input_len = strlen(input_array);
+
+    // Remove trailing newline from fgets
+    if (input_array[input_len - 1] == '\n')
+    {
+        input_array[--input_len] = '\0';
+    }
+
+    // Calculate number of 16-byte blocks needed
+    int num_blocks = input_len / BLOCK_SIZE;
+    if (input_len % BLOCK_SIZE != 0)
+    {
+        num_blocks += 1;
+    }
+
+    printf("\nTotal blocks (with padding): %d\n", num_blocks);
+    unsigned char *padded_data = padding_function(input_array, num_blocks, input_len);
 
     // Step 4: Encryption Process
-    encryption_main(words, padded_data);
+    encryption_main(words, padded_data, num_blocks);
     free(padded_data);
     return 0;
 }
