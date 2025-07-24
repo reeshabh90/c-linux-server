@@ -17,6 +17,9 @@ void KeyExpansion(word words[4], byte key_bytes[16]);
 void apply_pkcs7_padding(unsigned char *block, int data_len);
 unsigned char *padding_function(char *input_array);
 void encryption_main(word *words, unsigned char *padded_data);
-
-void add_round(word *words, uint8_t state_matrix[4][4]);
 void aes_encrypt(unsigned char *block, word *words);
+void add_state_round(word *words, byte state_matrix[4][4], int round);
+static inline byte xtime(uint8_t x);
+void sub_bytes(byte state_matrix[4][4]);
+void shift_rows(byte state_matrix[4][4]);
+void mix_columns(byte state_matrix[4][4]);

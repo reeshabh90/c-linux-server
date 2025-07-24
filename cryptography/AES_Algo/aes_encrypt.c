@@ -233,27 +233,54 @@ unsigned char *padding_function(char *input_array)
 void aes_encrypt(unsigned char *block, word *words)
 {
     printf("AES encryption function called with block and words.\n");
-    uint8_t state_matrix[4][4]; // AES state matrix (4x4)
+    byte state_matrix[4][4]; // AES state matrix (4x4)
 
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 4; j++)
         {
             state_matrix[i][j] = block[i + 4 * j];
+            printf("State[%d][%d]: %02X\n", i, j, state_matrix[i][j]);
+        }
+    }
+    int round = 0;
+    // Round 0 (Initial Step) — AddRoundKey
+    add_state_round(words, state_matrix, round);
+
+    // Round (1-10)
+    for (round = 1; round < 10; round++)
+    {
+        // SubBytes
+        sub_bytes(state_matrix);
+        // ShiftRows
+        shift_rows(state_matrix);
+        // MixColumns
+        mix_columns(state_matrix);
+        // AddRoundKey
+        add_state_round(words, state_matrix, round);
+    }
+
+    byte ciphertext[16];
+    for (int col = 0; col < 4; ++col)
+    {
+        for (int row = 0; row < 4; ++row)
+        {
+            ciphertext[col * 4 + row] = state_matrix[row][col];
         }
     }
 
-    // Round 0 (Initial Step) — AddRoundKey
-    add_round(words, state_matrix);
-
-    // Round (1-10)
-    for (int round = 1; round < 10; round++)
+    printf("Encrypted ciphertext:\n");
+    for (int i = 0; i < BLOCK_SIZE; ++i)
     {
+        printf("%02X", ciphertext[i]);
     }
+    printf("\n");
 }
 
-// Multiply by 2 in GF(2^8)
-static inline uint8_t xtime(uint8_t x)
+/**
+ * @brief This functions performs Multiply by 2 in Galois Field GF(2^8)
+ */
+static inline byte xtime(uint8_t x)
 {
     return (x << 1) ^ ((x & 0x80) ? 0x1B : 0x00);
 }
@@ -266,28 +293,28 @@ static inline uint8_t xtime(uint8_t x)
  * GF(2⁸) is a finite field used in AES, where arithmetic operations are performed modulo an irreducible polynomial.
  * - Normal addition is XOR
  * - Multiplication is defined modulo the polynomial x⁸ + x⁴ + x³ + x + 1 (hex 0x11B)
- * 
+ *
  * In our implementation, we use the xtime function to multiply by 2 in GF(2⁸).
- * Instead of a general-purpose multiplication function (gmul), 
+ * Instead of a general-purpose multiplication function (gmul),
  * we do multiplication by 2 inline and derive multiplication by 3 from it.
  * This speeds up encryption and is widely used in embedded or performance-sensitive AES implementations.
- * 
+ *
  * @param state The state matrix (4x4) to be transformed.
  */
-void mix_columns(uint8_t state[4][4])
+void mix_columns(byte state[4][4])
 {
     for (int j = 0; j < 4; j++)
     { // Each column
-        uint8_t s0 = state[0][j];
-        uint8_t s1 = state[1][j];
-        uint8_t s2 = state[2][j];
-        uint8_t s3 = state[3][j];
+        byte s0 = state[0][j];
+        byte s1 = state[1][j];
+        byte s2 = state[2][j];
+        byte s3 = state[3][j];
 
         // Multiply as per AES MixColumns matrix
-        uint8_t s0x = xtime(s0);
-        uint8_t s1x = xtime(s1);
-        uint8_t s2x = xtime(s2);
-        uint8_t s3x = xtime(s3);
+        byte s0x = xtime(s0);
+        byte s1x = xtime(s1);
+        byte s2x = xtime(s2);
+        byte s3x = xtime(s3);
 
         state[0][j] = s0x ^ (s1x ^ s1) ^ s2 ^ s3; // 2*s0 ^ 3*s1 ^ 1*s2 ^ 1*s3
         state[1][j] = s0 ^ s1x ^ (s2x ^ s2) ^ s3; // 1*s0 ^ 2*s1 ^ 3*s2 ^ 1*s3
@@ -298,11 +325,21 @@ void mix_columns(uint8_t state[4][4])
 
 /**
  * @brief This function performs the ShiftRows transformation in AES.
+ * @details
+ * Each row of the state matrix is shifted left by:
+
+    0 bytes for row 0
+
+    1 byte for row 1
+
+    2 bytes for row 2
+
+    3 bytes for row 3
  * @param state The state matrix (4x4) to be transformed.
  */
-void shift_rows(uint8_t state[4][4])
+void shift_rows(byte state[4][4])
 {
-    uint8_t temp[4][4];
+    byte temp[4][4];
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 4; j++)
@@ -324,7 +361,7 @@ void shift_rows(uint8_t state[4][4])
  * @brief This function performs the SubBytes transformation in AES.
  * @param state The state matrix (4x4) to be transformed.
  */
-void sub_bytes(uint8_t state[4][4])
+void sub_bytes(byte state[4][4])
 {
     for (int i = 0; i < 4; i++)
     {
@@ -336,17 +373,11 @@ void sub_bytes(uint8_t state[4][4])
     }
 }
 
-
-/**
- * @brief This function adds the round key to the state matrix.
- * @param state_matrix The state matrix (4x4) to be transformed.
- * @param words The expanded key words (44 words for AES-128).
- */
-void add_round(word *words, uint8_t state_matrix[4][4])
+void add_state_round(word *words, byte state_matrix[4][4], int round)
 {
     for (int i = 0; i < 4; i++)
     {
-        word keyWord = words[i];
+        word keyWord = words[round * 4 + i];
         for (int j = 0; j < 4; j++)
         {
             // each word is a Hexadecimal 32-bit value
@@ -357,7 +388,7 @@ void add_round(word *words, uint8_t state_matrix[4][4])
             // keyWord >> 16 = 0x0000AABB
             // `& 0xFF` is used to mask everything except the lowest byte.
             // This removes any bits that might be left behind in upper bytes.
-            state_matrix[i][j] ^= (keyWord >> (8 * (3 - j))) & 0xFF;
+            state_matrix[j][i] ^= (keyWord >> (8 * (3 - j))) & 0xFF;
         }
     }
 }
@@ -385,24 +416,20 @@ void encryption_main(word *words, unsigned char *padded_data)
         printf("\n");
 
         // Call the AES encryption function (not implemented here)
-        // For example: aes_encrypt(block, words);
-
-        // After encryption, print the encrypted block
-        printf("Encrypted block %d:\n", i + 1);
-        for (int j = 0; j < BLOCK_SIZE; j++)
-        {
-            printf("%02X ", block[j]); // This should be replaced with actual encrypted data
-        }
-        printf("\n");
+        aes_encrypt(block, words);
     }
 }
 
+/**
+ * @brief This function flushes the input buffer to remove any leftover characters.
+ * @details It reads characters until a newline or EOF is encountered, effectively clearing the input buffer.
+ */
 void flush_input()
 {
     int c;
-    while ((c = getchar()) != '\n' && c != EOF)
-        ;
+    while ((c = getchar()) != '\n' && c != EOF);
 }
+
 int main(int argc, char const *argv[])
 {
     // Input string buffer: 32 hex characters + null terminator

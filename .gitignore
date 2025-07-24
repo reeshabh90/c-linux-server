@@ -1,6 +1,7 @@
 # Ignore all files without an extension (likely executables)
 *
 
+
 # Do not ignore C source files
 !*.c
 
@@ -18,3 +19,6 @@
 
 # Do not ignore readme files
 !*.md
+
+#Explicitly ignore the Test Directory
+Test/*
