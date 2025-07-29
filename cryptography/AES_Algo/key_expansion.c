@@ -158,53 +158,53 @@ void KeyExpansion(word words[4], byte key_bytes[16])
         words[i] = words[i - AES_NK] ^ temp;
     }
 
-    printf("Next Round Keys:\n");
+    // printf("Next Round Keys:\n");
     for (int i = AES_NK; i < AES_KEY_EXP_SIZE; i++)
     {
         printf("W[%2d]: %08X\n", i, words[i]);
     }
 }
 
-int main(int argc, char const *argv[])
-{
-    // Input string buffer: 32 hex characters + null terminator
-    char input_key[33];
-    // AES-128: 128 bits = 16 bytes
-    byte key_bytes[AES_KEYLEN];
-    // 4 words (each 32 bits) for initial round key
-    word words[AES_KEY_EXP_SIZE];
+// int main(int argc, char const *argv[])
+// {
+//     // Input string buffer: 32 hex characters + null terminator
+//     char input_key[33];
+//     // AES-128: 128 bits = 16 bytes
+//     byte key_bytes[AES_KEYLEN];
+//     // 4 words (each 32 bits) for initial round key
+//     word words[AES_KEY_EXP_SIZE];
 
-    printf("Enter 128-bit AES key in hex (32 hex digits):\n");
-    scanf("%32s", input_key);
+//     printf("Enter 128-bit AES key in hex (32 hex digits):\n");
+//     scanf("%32s", input_key);
 
-    // Validate input length
-    if (strlen(input_key) != 32)
-    {
-        printf("Error: You must enter exactly 32 hexadecimal characters (128 bits).\n");
-        return 1;
-    }
-    /**
-     * Expected Output:
-     * Enter 128-bit AES key in hex (32 hex digits):
-       1CDFAABAB7B9BA7E0EE939035F8165AA
-       Converted 16 bytes: 1C DF AA BA B7 B9 BA 7E 0E E9 39 03 5F 81 65 AA
-       NOTE: The input is string and hence we get charachters and their ASCII value, not numbers, hence byte conversion.
-     */
-    // Step 1: Convert each pair of hex characters to a byte
-    for (int i = 0; i < AES_KEYLEN; ++i)
-    {
-        // printf("Hex pairs: %c%c\n", input_key[i * 2], input_key[i * 2 + 1]);
-        key_bytes[i] = hex_byte(&input_key[i * 2]);
-    }
+//     // Validate input length
+//     if (strlen(input_key) != 32)
+//     {
+//         printf("Error: You must enter exactly 32 hexadecimal characters (128 bits).\n");
+//         return 1;
+//     }
+//     /**
+//      * Expected Output:
+//      * Enter 128-bit AES key in hex (32 hex digits):
+//        1CDFAABAB7B9BA7E0EE939035F8165AA
+//        Converted 16 bytes: 1C DF AA BA B7 B9 BA 7E 0E E9 39 03 5F 81 65 AA
+//        NOTE: The input is string and hence we get charachters and their ASCII value, not numbers, hence byte conversion.
+//      */
+//     // Step 1: Convert each pair of hex characters to a byte
+//     for (int i = 0; i < AES_KEYLEN; ++i)
+//     {
+//         // printf("Hex pairs: %c%c\n", input_key[i * 2], input_key[i * 2 + 1]);
+//         key_bytes[i] = hex_byte(&input_key[i * 2]);
+//     }
 
-    printf("Converted 16 bytes: ");
-    for (int i = 0; i < AES_KEYLEN; i++)
-    {
-        printf("%X ", key_bytes[i]);
-    }
-    printf("\n");
+//     printf("Converted 16 bytes: ");
+//     for (int i = 0; i < AES_KEYLEN; i++)
+//     {
+//         printf("%X ", key_bytes[i]);
+//     }
+//     printf("\n");
 
-    // Step 2: Expand the keys (big-endian)
-    KeyExpansion(words, key_bytes);
-    return 0;
-}
+//     // Step 2: Expand the keys (big-endian)
+//     KeyExpansion(words, key_bytes);
+//     return 0;
+// }
