@@ -265,6 +265,7 @@ static inline byte xtime(uint8_t x)
     return (x << 1) ^ ((x & 0x80) ? 0x1B : 0x00);
 }
 
+
 /**
  * @brief This function performs the MixColumns transformation in AES.
  * @details
@@ -405,7 +406,7 @@ void encryption_main(word *words, unsigned char *padded_data, int num_blocks)
         aes_encrypt(block, words, ciphertext);
 
         memcpy(final_ciphertext + i * BLOCK_SIZE, ciphertext, BLOCK_SIZE);
-        }
+    }
 
     printf("Encrypted ciphertext:\n");
     for (int i = 0; i < (BLOCK_SIZE * num_blocks); i++)
