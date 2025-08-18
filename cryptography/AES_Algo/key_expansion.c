@@ -142,11 +142,11 @@ void KeyExpansion(word words[4], byte key_bytes[16])
     }
 
     // Print the 4 words
-    printf("\nInitial 4 words (in hex):\n");
-    for (int i = 0; i < AES_NK; i++)
-    {
-        printf("W%d: %08X\n", i, words[i]);
-    }
+    // printf("\nInitial 4 words (in hex):\n");
+    // for (int i = 0; i < AES_NK; i++)
+    // {
+    //     printf("W%d: %08X\n", i, words[i]);
+    // }
     // Expanding rest of the 40 keys
     for (int i = AES_NK; i < AES_KEY_EXP_SIZE; i++)
     {
@@ -159,10 +159,10 @@ void KeyExpansion(word words[4], byte key_bytes[16])
     }
 
     // printf("Next Round Keys:\n");
-    for (int i = AES_NK; i < AES_KEY_EXP_SIZE; i++)
-    {
-        printf("W[%2d]: %08X\n", i, words[i]);
-    }
+    // for (int i = AES_NK; i < AES_KEY_EXP_SIZE; i++)
+    // {
+    //     printf("W[%2d]: %08X\n", i, words[i]);
+    // }
 }
 
 // int main(int argc, char const *argv[])

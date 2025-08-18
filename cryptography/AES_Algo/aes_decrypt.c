@@ -28,63 +28,12 @@ static const byte inv_sbox[256] = {
     0xA0, 0xE0, 0x3B, 0x4D, 0xAE, 0x2A, 0xF5, 0xB0, 0xC8, 0xEB, 0xBB, 0x3C, 0x83, 0x53, 0x99, 0x61,
     0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D};
 
-// Rcon[i] = (x^(i-1), 0, 0, 0)
-// Rcon values are used in key expansion to introduce non-repetition and prevent symmetry in round keys.
-const word rcon[11] = {
-    0x00000000,
-    0x01000000, 0x02000000, 0x04000000, 0x08000000,
-    0x10000000, 0x20000000, 0x40000000, 0x80000000,
-    0x1b000000, 0x36000000};
-
-/// @brief This function creates a padding over the input
-/// @details The function performs following steps:
-/// 1. Removes trailing new line
-/// 2. Calculate number of blocks text need to be divided into, as AES works on 16 bytes (128 bits) block only.
-/// 3. Last block is padded using pcks7 so that during decryption program knows when data has ended.
-/// @param input string array
-/// @return
-unsigned char *padding_function(char *input_array, int num_blocks, size_t input_len)
-{
-
-    unsigned char *padded_data = (unsigned char *)calloc(num_blocks * BLOCK_SIZE, sizeof(unsigned char));
-    memcpy(padded_data, input_array, input_len);
-
-    // Apply PKCS#7 padding to the last block
-    int last_block_len = input_len % BLOCK_SIZE;
-    if (last_block_len == 0)
-    {
-        // Full block, add new block with padding
-        // When decrypting, the program must know where the real data ends and padding begins.
-        // If a 16-byte block is the exact length of the data,  to avoid ambiguity,
-        // we add a full block of padding (e.g., 0x10 0x10 ... 0x10 for PKCS#7).
-        for (int i = 0; i < BLOCK_SIZE; i++)
-        {
-            padded_data[input_len + i] = BLOCK_SIZE;
-        }
-        num_blocks += 1;
-    }
-    else
-    {
-        // `padded_data` points to the start of the full padded buffer
-        // first argument points to the last 16-byte block (hence, num_blocks -1).
-        apply_pkcs7_padding(padded_data + (num_blocks - 1) * BLOCK_SIZE, last_block_len);
-    }
-
-    // Display the blocks
-    printf("\nPadded 16-byte blocks (in hex):\n");
-    for (int i = 0; i < num_blocks; i++)
-    {
-        printf("Block %d: ", i + 1);
-        for (int j = 0; j < BLOCK_SIZE; j++)
-        {
-            printf("%02X ", padded_data[i * BLOCK_SIZE + j]);
-        }
-        printf("\n");
-    }
-    return padded_data;
-    // free(padded_data);
-}
-
+/**
+ * @brief This function adds the round key to the state matrix.
+ * @param words The expanded key words (40 words for AES-128).
+ * @param state_matrix The state matrix (4x4) to be transformed.
+ * @param round The current round number (0 to 10).
+ */
 void add_state_round(word *words, byte state_matrix[4][4], int round)
 {
     for (int i = 0; i < 4; i++)
@@ -155,46 +104,61 @@ void inv_sub_bytes(byte state[4][4])
     }
 }
 
-// Multiply by 2 in GF(2^8)
-static inline byte xtime(byte x)
+/**
+ * @brief This function performs the xtime operation used in MixColumns.
+ */
+byte xtime(byte x)
 {
-    return (x << 1) ^ ((x & 0x80) ? 0x1B : 0x00);
+    return (x << 1) ^ ((x >> 7) * 0x1b);
 }
 
-// Multiply by 9, 11, 13, 14 using xtime chaining
-static inline byte mul9(byte x)
+/**
+ * @brief This function performs multiplication in GF(2^8) used in MixColumns.
+ * @details
+ * It uses the Russian peasant multiplication algorithm to perform multiplication
+ * in the Galois Field GF(2^8) with the irreducible polynomial x^8 + x^4 + x^3 + x + 1.
+ * @param a First byte to multiply.
+ * @param b Second byte to multiply.
+ * @return The result of the multiplication.
+ */
+byte mul(byte a, byte b)
 {
-    return xtime(xtime(xtime(x))) ^ x; // (((x * 2) * 2) * 2) ^ x
+    byte result = 0;
+    for (int i = 0; i < 8; i++)
+    {
+        if (b & 1)
+            result ^= a;
+        byte hi_bit = a & 0x80;
+        a <<= 1;
+        if (hi_bit)
+            a ^= 0x1b;
+        b >>= 1;
+    }
+    return result;
 }
 
-static inline byte mul11(byte x)
-{
-    return xtime(xtime(xtime(x)) ^ x) ^ x; // (((x*2)*2)*2 ^ x)*2 ^ x
-}
-
-static inline byte mul13(byte x)
-{
-    return xtime(xtime(xtime(x) ^ x)) ^ x; // (((x*2)*2)^x)*2 ^ x
-}
-
-static inline byte mul14(byte x)
-{
-    return xtime(xtime(xtime(x) ^ x) ^ x); // (((x*2)*2)^x ^ x)*2
-}
-
+/**
+ * @brief This function performs the InvMixColumns transformation in AES.
+ * @details
+ * It applies the inverse MixColumns transformation to the state matrix.
+ * @param state The state matrix (4x4) to be transformed.
+ */
 void inv_mix_columns(byte state[4][4])
 {
-    for (int j = 0; j < 4; j++)
+    byte temp[4];
+    for (int c = 0; c < 4; c++)
     {
-        byte s0 = state[0][j];
-        byte s1 = state[1][j];
-        byte s2 = state[2][j];
-        byte s3 = state[3][j];
+        temp[0] = mul(0x0e, state[0][c]) ^ mul(0x0b, state[1][c]) ^
+                  mul(0x0d, state[2][c]) ^ mul(0x09, state[3][c]);
+        temp[1] = mul(0x09, state[0][c]) ^ mul(0x0e, state[1][c]) ^
+                  mul(0x0b, state[2][c]) ^ mul(0x0d, state[3][c]);
+        temp[2] = mul(0x0d, state[0][c]) ^ mul(0x09, state[1][c]) ^
+                  mul(0x0e, state[2][c]) ^ mul(0x0b, state[3][c]);
+        temp[3] = mul(0x0b, state[0][c]) ^ mul(0x0d, state[1][c]) ^
+                  mul(0x09, state[2][c]) ^ mul(0x0e, state[3][c]);
 
-        state[0][j] = mul14(s0) ^ mul11(s1) ^ mul13(s2) ^ mul9(s3);
-        state[1][j] = mul9(s0) ^ mul14(s1) ^ mul11(s2) ^ mul13(s3);
-        state[2][j] = mul13(s0) ^ mul9(s1) ^ mul14(s2) ^ mul11(s3);
-        state[3][j] = mul11(s0) ^ mul13(s1) ^ mul9(s2) ^ mul14(s3);
+        for (int i = 0; i < 4; i++)
+            state[i][c] = temp[i];
     }
 }
 
@@ -203,46 +167,56 @@ void inv_mix_columns(byte state[4][4])
  * @param block Pointer to the block of data to be encrypted (16 bytes).
  * @param words Pointer to the expanded key words (40 words for AES-128).
  */
-byte *aes_decrypt(unsigned char *block, word *words, byte *ciphertext)
+char *aes_decrypt(unsigned char *block, word *words, char *plain_block)
 {
-    printf("AES encryption function called with block and words.\n");
+    printf("AES decryption function called with block and words.\n");
     byte state_matrix[4][4]; // AES state matrix (4x4)
-
     for (int i = 0; i < 4; i++)
     {
         for (int j = 0; j < 4; j++)
         {
             state_matrix[i][j] = block[i + 4 * j];
-            printf("State[%d][%d]: %02X\n", i, j, state_matrix[i][j]);
         }
     }
-
+    add_state_round(words, state_matrix, 10);
+    inv_shift_rows(state_matrix);
+    inv_sub_bytes(state_matrix);
     // Round (1-9)
-    for (int round = 9; round <= 1; round--)
+    for (int round = 9; round >= 1; round--)
     {
-        // SubBytes
-        inv_sub_bytes(state_matrix);
-        // ShiftRows
-        inv_shift_rows(state_matrix);
         // AddRoundKey
         add_state_round(words, state_matrix, round);
         // MixColumns
         inv_mix_columns(state_matrix);
+        // ShiftRows
+        inv_shift_rows(state_matrix);
+        // SubBytes
+        inv_sub_bytes(state_matrix);
     }
 
-    // Final round: round 0 (no InvMixColumns)
-    inv_shift_rows(state_matrix);
-    inv_sub_bytes(state_matrix);
+    // Final round: round 0 (no InvMixColumns)doc
     add_state_round(words, state_matrix, 0);
 
     for (int col = 0; col < 4; ++col)
     {
         for (int row = 0; row < 4; ++row)
         {
-            ciphertext[col * 4 + row] = state_matrix[row][col];
+            // printf("State[%d][%d]: %02X\n", row, col, state_matrix[row][col]);
+            plain_block[col * 4 + row] = state_matrix[row][col];
         }
     }
-    return ciphertext;
+    return plain_block;
+}
+
+/**
+ * @brief This function converts a hexadecimal string to bytes.
+ */
+void hex_string_to_bytes(const char *hex_str, unsigned char *bytes, int length)
+{
+    for (int i = 0; i < length / 2; i++)
+    {
+        sscanf(hex_str + 2 * i, "%2hhx", &bytes[i]);
+    }
 }
 
 /**
@@ -253,39 +227,67 @@ byte *aes_decrypt(unsigned char *block, word *words, byte *ciphertext)
  * @param words Pointer to the expanded key words (40 words for AES-128).
  * @param padded_data Pointer to the padded data to be encrypted.
  */
-void decryption_main(word *words, unsigned char *padded_data, int num_blocks)
+void decryption_main(word *words, const char *encrypted_text)
 {
+    // Calculate Input Length
+    size_t input_len = strlen(encrypted_text);
+
+    // 32 hex chars per 16-byte block
+    int num_blocks = input_len / 32;
+
+    unsigned char *cipher_bytes = malloc(BLOCK_SIZE * num_blocks);
+    if (!cipher_bytes)
+    {
+        printf("Memory allocation failed\n");
+        return;
+    }
+
+    hex_string_to_bytes(encrypted_text, cipher_bytes, input_len);
+
+    unsigned char *plaintext = malloc(BLOCK_SIZE * num_blocks);
+    if (!plaintext)
+    {
+        printf("Memory allocation failed\n");
+        return;
+    }
     printf("DEBUG: num_blocks = %d\n", num_blocks);
     if (num_blocks <= 0 || num_blocks > 1000)
     { // sanity check
         printf("Invalid num_blocks: %d\n", num_blocks);
         exit(1);
     }
-    byte final_ciphertext[BLOCK_SIZE * num_blocks];
+
     for (int i = 0; i < num_blocks; i++)
     {
-        unsigned char *block = padded_data + i * BLOCK_SIZE;
-        printf("\nEncrypting block %d:\n", i + 1);
-        // Print the block before encryption
+        unsigned char *block = cipher_bytes + i * BLOCK_SIZE;
+        unsigned char *plain_block = plaintext + i * BLOCK_SIZE;
+        printf("\nDecrypting block %d:\n", i + 1);
+        // Print the block before decryption
         for (int j = 0; j < BLOCK_SIZE; j++)
         {
             printf("%02X ", block[j]);
         }
         printf("\n");
-        byte ciphertext[BLOCK_SIZE];
-        // Call the AES encryption function (not implemented here)
-        aes_decrypt(block, words, ciphertext);
-
-        memcpy(final_ciphertext + i * BLOCK_SIZE, ciphertext, BLOCK_SIZE);
+        // Call the AES decryption function
+        aes_decrypt(block, words, plain_block);
     }
 
-    printf("Encrypted ciphertext:\n");
-    for (int i = 0; i < (BLOCK_SIZE * num_blocks); i++)
+    // Remove padding (optional based on your padding logic during encryption)
+    int padding = plaintext[BLOCK_SIZE * num_blocks - 1]; // PKCS#7 style
+    int final_length = BLOCK_SIZE * num_blocks - padding;
+
+    printf("\nDecrypted Plaintext:\n");
+    for (size_t i = 0; i < strlen(plaintext); i++)
     {
-        printf("%02X", final_ciphertext[i]);
+        printf("Plaintext[%zu]: %c\n", i, plaintext[i]);
     }
     printf("\n");
+
+    free(cipher_bytes);
+    free(plaintext);
+    printf("\n");
 }
+
 
 int main(int argc, char const *argv[])
 {
@@ -295,7 +297,7 @@ int main(int argc, char const *argv[])
     // AES key: 1CDFAABAB7B9BA7E0EE939035F8165AA
 
     char input_key[33] = "1CDFAABAB7B9BA7E0EE939035F8165AA";
-    char encrypted_text[65] = "B146A131F3F0EA0E26D8DABFB39A8112A15FA380EECEB335CBEA134A8602CF6A";
+    char encrypted_text[65] = "91065FB466C4F25EF84CC9E0F7F4F9FA";
     // AES-128: 128 bits = 16 bytes
     byte key_bytes[AES_KEYLEN];
     // 4 words (each 32 bits) for initial round key
@@ -317,27 +319,7 @@ int main(int argc, char const *argv[])
 
     KeyExpansion(words, key_bytes);
 
-    // Calculate Input Length
-    size_t input_len = strlen(encrypted_text);
-
-    // Remove trailing newline from fgets
-    if (encrypted_text[input_len - 1] == '\n')
-    {
-        encrypted_text[--input_len] = '\0';
-    }
-
-    // Calculate number of 16-byte blocks needed
-    int num_blocks = input_len / BLOCK_SIZE;
-    if (input_len % BLOCK_SIZE != 0)
-    {
-        num_blocks += 1;
-    }
-
-    printf("\nTotal blocks (with padding): %d\n", num_blocks);
-    unsigned char *padded_data = padding_function(encrypted_text, num_blocks, input_len);
-
-    // Step 4: Encryption Process
-    decryption_main(words, padded_data, num_blocks);
-    free(padded_data);
+    // Step 4: Decryption Process
+    decryption_main(words, encrypted_text);
     return 0;
 }

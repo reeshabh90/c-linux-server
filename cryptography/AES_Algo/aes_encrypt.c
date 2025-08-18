@@ -230,7 +230,6 @@ byte *aes_encrypt(unsigned char *block, word *words, byte *ciphertext)
     int round = 0;
     // Round 0 (Initial Step) — AddRoundKey
     add_state_round(words, state_matrix, round);
-
     // Round (1-9)
     for (round = 1; round <= 10; round++)
     {
@@ -354,6 +353,12 @@ void sub_bytes(byte state[4][4])
     }
 }
 
+/**
+ * @brief This function adds the round key to the state matrix.
+ * @param words The expanded key words (40 words for AES-128).
+ * @param state_matrix The state matrix (4x4) to be transformed.
+ * @param round The current round number (0 to 10).
+ */
 void add_state_round(word *words, byte state_matrix[4][4], int round)
 {
     for (int i = 0; i < 4; i++)
