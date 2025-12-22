@@ -11,7 +11,7 @@
  * @param buffer Pointer to a character buffer to hold the actual token strings 🔴 Remember: To free memory of buffer
  * @return Number of tokens found
  */
-size_t tokenize_by_space(char *str, char *delim, char **tokens, size_t max_tokens_size, char **buffer)
+size_t tokenize_by_space(const char *str, char delim, char **tokens, size_t max_tokens_size, char **buffer)
 {
     size_t len = strlen(str);
     size_t token_index = 0;
@@ -24,7 +24,7 @@ size_t tokenize_by_space(char *str, char *delim, char **tokens, size_t max_token
 
     for (size_t i = 0; i <= len; i++)
     {
-        if (str[i] == delim[0] || str[i] == '\0')
+        if (str[i] == delim || str[i] == '\0')
         {
             // variable to store length of the token to be copied
             size_t tok_len = i - start;
@@ -54,7 +54,7 @@ int main(int argc, char const *argv[])
     char *buffer;
     // 🔴 Remember: To free memory of buffer
     char string_to_tokenize[] = "This is a sample string to be tokenized";
-    char *delim = " ";
+    char delim = ' ';
     printf("Original string: %s\n", string_to_tokenize);
     size_t token_count = tokenize_by_space(string_to_tokenize, delim, tokens, size, &buffer);
     printf("Tokenized string:\n");
@@ -64,5 +64,5 @@ int main(int argc, char const *argv[])
     }
     // 🟢 Done: Memory free of buffer
     free(buffer);
-    return 0;
+    return EXIT_SUCCESS;
 }
