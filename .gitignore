@@ -1,6 +1,8 @@
 # Ignore all files without an extension (likely executables)
 *
 
+# Do not ignore text files
+!*.txt
 
 # Do not ignore C source files
 !*.c

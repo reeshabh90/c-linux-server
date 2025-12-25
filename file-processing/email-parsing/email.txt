@@ -1,0 +1,30 @@
+
+    1. rupam@lyfas.com (plain custom domain)
+    2. rupam.iics@gmail.com (plain gmail domain)
+    3. rupam dot iics [at] gmail dot com (NLP1: Specify in text to avoid robot picking up emails)
+    4. rupam[dot]iics[at]gmail[dot]com (NLP2: Specify in text to avoid robot picking up emails)]
+    5. rupam underscore das underscore hmsit at the rate yahoo dot com
+    6. rupam_das_hmsit_at_the_rate_yahoo_dot_com
+    7. rupam_dasUNDERSCOREhmsit-at-the-rate-yahoo.com
+    8. rupam23556.abc_efg-klm@abc.cde.efg.co.in
+    9. ID:rupam@whatever.biz  //observe dot com is removed. It may even be .biz.in or .biz.co.
+    10.Email:-rupam@something.com  //Observe that there is a :-joined at the beginning
+    12. Email: rupam AT something .com.
+    13. Email: rupam AT something DOT com.
+    14. Rupam(period)iics(atTheRate)gm com -> Gmail ID // observe how domain name is not specified
+completely
+    15. 11890rupamMohan_sohan(At)gm(dot)com)
+    16. My email ID in lyfas dot com is rupam at the rate.
+    17. Email ids of me and my friends in lyfa dot com are rupam, and mohan. Use at the rate after 
+name.
+    18. in lyfas dot com three email ids with at the rate are rupam, mohan,sohan.
+    19. rupam.iics@gmail,sohan1234@gml,kritika_a12[at]gmel[dot][com]
+    20. Can you provide me with your email id? [There is no id here]
+    21. jeff dot bezos at amazon. (not always .com is specified)
+    
+     22. False Patters: look at me.
+    23. the dot product in matrices can be found at lyfas.com blog.
+    24. I will come at your place dot at 7PM.
+    25. India @ Asian com. Summit presented dot agenda.
+    26. My email @ gmail.com has been a mess.
+    27. observe the (.) product @ the bottom of the page. 

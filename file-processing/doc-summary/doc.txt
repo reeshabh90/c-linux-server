@@ -1,0 +1,50 @@
+Artificial Intelligence(AI) Challenge IV: Summarization(TF-IDF)
+
+"If we already get filtered and processed data in in computer, then why we need signal processing?"
+
+A. Mathematics
+Let us inherit our definitions from yesterday's post(III).
+
+Data(D)={Sensor(t), S(t+1),S(t+2)...S(T)} -(1)
+Information(I)= Statistics(D) --(2)
+Information System(IS)= {I(1),I(2)...I(N)}--(3)
+Knowledge System(K)={IS1, IS2.. IS(sN)}--(4)
+Insight(In)= ∂K/∂I ---(5)
+Learning(L)={𝑓({D,I,IS,K,In}),{D,I,IS,K,In}}--(5)
+Intelligence=∂L/∂t --(6)
+
+B. Understand Your Organs and Brain
+
+You have sensory organs such as eyes, skin, nose, ear, tongue. If I ask you to visualize lemon pickle, you will already start having water in tongue. But if I ask you to visualize laddu, you will not have a sweet sensation in teeth. 
+
+If I ask you to visualize some events from your childhood, you may recall few vividly, but in spite of having all ten years in school and more than 2500 days, you won't recall all school days. 
+
+
+C. Notion of Signal Processing:
+
+Each hardware, such as keyboard, mouse, have their own filters. When the data is sent to the device memory through driver, the driver implements another set of signal processing. Then the data reaches to the kernel, where another level of signal processing is performed, and finally data is reached to the application program.
+
+If you have worked with .Net, then user.dll, keyboard.dll, kernel.dll, all can be trapped for keyboard and mouse data, and all data will return different sets of data. On the other hand, in a typical C#.Net application, when you use Keyboard events such as keyUP or KeyDown, you get access to the events, and not raw data.
+
+Therefore, in information technology, every single hardware and software layer sees the input as an analog data, and processes it based on its own needs and requirements.
+
+D. Summary(interesting information from a set of data)
+
+When you have your first gray hair, it is an anomaly. If each cell of your scalp is made into an array, then black(or regular hair) will appear in most elements, whereas information(i.e. gray hair) will appear in few elements.
+
+Space, between appearance of two similar information is called time-derivative. Frequency is 1/T.
+So, as your black hairs appears frequently, time≈0, say, .0001, and hence Freq=1/time, or ≈ ∞. This is called High frequency. Which is noise.
+
+After every 1 lakh black hair, one gray hair may appear. So, GrayHairTime≈ say 1L, and thus GrayHairFreq=1x10^-5. This is called low frequency, and this is information.
+
+TF-IDF stands for Term-Frequency, inverse document frequency. It is based on Zipf's law. 
+In the information world, we are not interested in frequently appearing phenomenon, we are interested in rare events. 
+Zipf's law states: WordRank ∝1/WordFrequency. The exact way, you are not interested in knowing your black hair, but concerned about the gap in the scalp, first fall of hair, first graying of hair, the way your brain and senses are constantly scanning for low frequency anomalies, the same way, AI in simple word looks for anomalies.
+
+Machines don't require any training or testing to know these facts. Why it is called "Artificial Intelligence?" Because it replicates the exact processes that happens in your brain, but through algorithms. Therefore, an AI replicates exact same biological processes that takes place within you.
+
+That is why understanding AI requires you to start from understanding yourself, and then the very operating system kernel, and then the instruction set of your processor(Intel/AMD) whatever it is. 
+
+If you are a coder, and are serious about existing and extending career in the AI era, start with UNIX kernel, commands and system calls with GNU-C. 
+
+Must Book: Digital Signal Processing by Simon Haykin.

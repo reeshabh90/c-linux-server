@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <regex.h>
+#include <time.h>
 #include "emailparser.h"
 
 /**
@@ -109,7 +110,6 @@ void normalize(char *file_content)
     replace_all(file_content, " at ", "@");
     replace_all(file_content, "(@)", "@");
 
-
     replace_all(file_content, "_dot_", ".");
     replace_all(file_content, " dot ", ".");
     replace_all(file_content, "(dot)", ".");
@@ -123,13 +123,12 @@ void normalize(char *file_content)
 
     replace_all(file_content, " gml ", " gmail ");
     replace_all(file_content, " gmai ", " gmail ");
-    replace_all(file_content, " google mail ", " gmail ");   
-    // replace_all(file_content, "gm", "gmail"); 
+    replace_all(file_content, " google mail ", " gmail ");
+    // replace_all(file_content, "gm", "gmail");
     replace_all(file_content, " gm ", " gmail ");
     replace_all(file_content, "gm ", "gmail");
-    
 
-     // Cleanup spaces around symbols
+    // Cleanup spaces around symbols
     replace_all(file_content, " @ ", "@");
     replace_all(file_content, " . ", ".");
     replace_all(file_content, " .com", ".com");
@@ -145,7 +144,7 @@ int extract_email(const char *text)
 {
     regex_t regex;
     regmatch_t match;
-    // pattern for email 
+    // pattern for email
     const char *email_pattern =
         "[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}";
 
@@ -161,7 +160,7 @@ int extract_email(const char *text)
     {
         // Extract matched email
         int start = match.rm_so;
-        int end   = match.rm_eo;
+        int end = match.rm_eo;
 
         char email[MAX_LINE];
         int len = end - start;
@@ -179,10 +178,11 @@ int extract_email(const char *text)
     return EXIT_SUCCESS;
 }
 
-
-
 int main(int argc, char const *argv[])
 {
+    clock_t start, stop;
+    // Record the start time
+    start = clock();
     // Read File
     FILE *fp;
     char file_content[MAX_LINE];
@@ -208,5 +208,7 @@ int main(int argc, char const *argv[])
     }
 
     fclose(fp);
+    double cpu_time_used = ((double)(clock() - start)) / CLOCKS_PER_SEC;
+    printf("Time taken: %f seconds\n", cpu_time_used);
     return EXIT_SUCCESS;
 }
