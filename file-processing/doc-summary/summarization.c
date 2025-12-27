@@ -1,9 +1,12 @@
 /**
- * emailp V1.0📔
+ * emailp V2.0📔
  * @file: emailparser.c
  * @author: Reeshabh Choudhary
  *
  * ℹ️ This program summarizes documents from a sample text file.
+ * It identifies unique words, counts their occurrences,
+ * and extracts sentences containing the rarest words.
+ * The summary is printed to the console in tabular format and saved in a CSV file.
  */
 
 #include <stdio.h>
@@ -138,13 +141,54 @@ int main(int argc, char const *argv[])
         buffer = NULL; // Reset for next line
     }
 
+    FILE *fp1;
+    const char *filename = "frequency_table.csv";
+    // Open the file for writing ("w")
+    fp1 = fopen(filename, "w");
+
+    if (fp1 == NULL)
+    {
+        printf("Error: could not open file %s\n", filename);
+        return EXIT_FAILURE;
+    }
     // Print the unique words and their counts
     printf("Unique words and counts:\n");
+    // Column headers
+    char *headers[] = {"Words", "Counts"};
+
+    // Field width for alignment
+    int width = 60;
+
+    // Print the column headers
+
+    for (int j = 0; j < 2; j++)
+    {
+        // Use '-' flag for left alignment of strings
+        fprintf(fp1, "%-*s,", width, headers[j]);
+        printf("%-*s", width, headers[j]);
+    }
+    fprintf(fp1, "\n"); // Move to the next line after headers
+    printf("\n");       // Move to the next line after headers
+
+    // Header Demarkation line in console -----
+    for (int j = 0; j < 2; j++)
+    {
+        printf("%-*s", width, "------");
+    }
+    printf("\n");
     for (size_t i = 0; i < num_unique; i++)
     {
-        printf("Word: %s, Count: %d\n", unique_words[i].word, unique_words[i].count);
+        fprintf(fp1, "%s,%d\n", unique_words[i].word, unique_words[i].count);
+        printf("%-*s %-*d\n", width, unique_words[i].word, width, unique_words[i].count);
+        if (i < num_unique - 1)
+        {
+            fprintf(fp1, "\n");
+        }
     }
 
+    // Close the file
+    fclose(fp1);
+    printf("Successfully generated %s\n", filename);
     // Sort unique words by count (lowest first)
     qsort(unique_words, num_unique, sizeof(struct WordCount), compare_wordcount);
 
