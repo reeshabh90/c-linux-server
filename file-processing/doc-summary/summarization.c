@@ -110,8 +110,13 @@ int compare_wordcount(const void *a, const void *b)
 
 int main(int argc, char const *argv[])
 {
-    /* Read a text file */
+    /* 📖 Read a text file */
     FILE *fp = fopen("doc.txt", "r");
+    if (!fp)
+    {
+        perror("Error opening file");
+        return EXIT_FAILURE;
+    }
     char file_content[MAX_LINE];
     char *tokens[MAX_TOKEN_LIMIT];
     // 🔴 1. Remember: To free memory of buffer
@@ -120,12 +125,6 @@ int main(int argc, char const *argv[])
     struct WordCount unique_words[MAX_UNIQUE_WORDS];
     size_t num_unique = 0;
     size_t token_count_per_line;
-
-    if (!fp)
-    {
-        perror("Error opening file");
-        return EXIT_FAILURE;
-    }
 
     while (fgets(file_content, sizeof(file_content), fp))
     {
@@ -143,7 +142,7 @@ int main(int argc, char const *argv[])
 
     FILE *fp1;
     const char *filename = "frequency_table.csv";
-    // Open the file for writing ("w")
+    // 📖 Open the file for writing ("w")
     fp1 = fopen(filename, "w");
 
     if (fp1 == NULL)
@@ -186,7 +185,7 @@ int main(int argc, char const *argv[])
         }
     }
 
-    // Close the file
+    // 📕 Close the file
     fclose(fp1);
     printf("Successfully generated %s\n", filename);
     // Sort unique words by count (lowest first)
@@ -234,7 +233,7 @@ int main(int argc, char const *argv[])
     {
         free(unique_words[i].word);
     }
-
+    // 📕 Close file pointer
     fclose(fp);
     return EXIT_SUCCESS;
 }
