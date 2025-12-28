@@ -1,5 +1,5 @@
 /**
- * emailp V2.0📔
+ * emailparser V2.0📔
  * @file: emailparser.c
  * @author: Reeshabh Choudhary
  *
