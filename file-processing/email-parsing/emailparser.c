@@ -186,7 +186,7 @@ int main(int argc, char const *argv[])
     // Read File
     FILE *fp;
     char file_content[MAX_LINE];
-
+    int line_num = 1;
     fp = fopen("email.txt", "r");
     if (!fp)
     {
@@ -205,6 +205,7 @@ int main(int argc, char const *argv[])
 
         printf("NORMALIZED: %s\n", file_content);
         extract_email(file_content);
+        line_num++; 
     }
 
     fclose(fp);
